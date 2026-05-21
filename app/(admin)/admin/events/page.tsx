@@ -11,9 +11,9 @@ import Event from "@/interfaces/event";
 type tabType = "Event Details" | "Registration Form" | "Registration Data";
 
 const tabs: { key: tabType; label: string }[] = [
-  { key: "Event Details", label: "Details" },
-  { key: "Registration Form", label: "Reg Form" },
-  { key: "Registration Data", label: "Reg Data" },
+  { key: "Event Details", label: "Event Page" },
+  { key: "Registration Form", label: "Registration Form" },
+  { key: "Registration Data", label: "Registration Data" },
 ];
 
 function Tabs({
@@ -24,17 +24,16 @@ function Tabs({
   changeTab: (tab: tabType) => void;
 }) {
   return (
-    <div className="flex gap-3 md:gap-5 lg:gap-8">
+    <div className="bg-[#0c0c0c] border border-zinc-850 p-1 rounded-lg flex items-center gap-1 w-fit select-none">
       {tabs.map((tab) => (
         <button
           key={tab.key}
-          className={`px-5 py-3 rounded-md cursor-pointer ${
+          className={`px-4 py-2 text-xs font-semibold rounded-md transition-all cursor-pointer ${
             activeTab === tab.key
-              ? "bg-[#003c34] text-white"
-              : "bg-[#F8FBE4] text-slate-600"
+              ? "bg-white text-black shadow-md"
+              : "text-zinc-400 hover:text-white"
           }`}
           onClick={() => {
-            console.log(tab.key);
             changeTab(tab.key);
           }}
         >
@@ -52,13 +51,16 @@ export default function Page() {
   const [event, setEvent] = useState<Event>(events[0]);
 
   useEffect(() => {
-    setEvent(events.find((tmpEvent) => tmpEvent.id === eventId));
+    const found = events.find((tmpEvent) => tmpEvent.id === eventId);
+    if (found) {
+      setEvent(found);
+    }
   }, [eventId]);
 
   return (
-    <div className="w-full p-3 md:p-5">
+    <div className="w-full p-4 md:p-6 flex flex-col">
       <Tabs activeTab={tab} changeTab={setTab} />
-      <div className="mt-7 w-[250px] border border-black px-4 py-2 rounded-md">
+      <div className="mt-6 w-[250px] border border-zinc-850 px-4 py-2 rounded-md bg-[#030303]">
         <DropDown
           selectedOption={eventId}
           changeOption={setEventId}
@@ -66,9 +68,11 @@ export default function Page() {
         />
       </div>
 
-      <p className="mt-3 text-xl font-medium">
-        {tab} for {event.name}
-      </p>
+      {tab === "Event Details" && (
+        <p className="mt-5 text-xl font-bold text-white">
+          Event Details for {event.name}
+        </p>
+      )}
 
       {tab === "Event Details" && (
         <EventDetails event={event} setEvent={setEvent} />

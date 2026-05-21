@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import DropDown from "../../components/Events/DropDown";
 import Section from "../../components/Events/Section";
 import { events } from "../dummyData";
@@ -14,7 +14,7 @@ export default function EventDetails({
   setEvent,
 }: {
   event: Event;
-  setEvent: (event: Event) => void;
+  setEvent: Dispatch<SetStateAction<Event>>;
 }) {
   const updateFAQ = (idx: number, field: string, val: string) => {
     const updatedFAQs = [...event.FAQs];
@@ -207,7 +207,7 @@ export default function EventDetails({
               ["rounds"]: [
                 ...event.rounds,
                 {
-                  id: 0,
+                  id: "",
                   roundNumber: event.rounds.length + 1,
                   desc: "",
                   startDate: "",

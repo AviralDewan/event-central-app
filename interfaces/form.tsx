@@ -5,7 +5,14 @@ export type questionTypes =
   | "paragraph"
   | "single-select"
   | "multi-select"
-  | "number";
+  | "number"
+  | "email"
+  | "phone"
+  | "url"
+  | "date-time"
+  | "date"
+  | "time"
+  | "dropdown";
 
 export interface BaseQuestion {
   id: string;
@@ -46,7 +53,7 @@ export interface MultiSelectAnswer extends BaseAnswer {
 }
 
 export interface TextQuestion extends BaseQuestion {
-  type: "short" | "paragraph";
+  type: "short" | "paragraph" | "email" | "phone" | "url" | "date-time" | "date" | "time";
 }
 
 export interface NumericQuestion extends BaseQuestion {
@@ -65,7 +72,7 @@ export interface MultiSelectQuestion extends BaseQuestion {
 }
 
 export interface SingleSelectQuestion extends BaseQuestion {
-  type: "single-select";
+  type: "single-select" | "dropdown";
   options: Option[];
 }
 

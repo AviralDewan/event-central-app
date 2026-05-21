@@ -16,6 +16,42 @@ export const mockProfile = (name: string): Profile => ({
 
 export const events: Event[] = [
   {
+    id: "event-chromatix",
+    name: "CHROMATIX",
+    genre: "Culturals",
+    finalLevelApproved: "pending",
+    firstLevelApproved: "pending",
+    createdBy: mockProfile("Admin"),
+    eventTeam: [],
+    createdOn: "2026-05-21",
+    rules: ["Submit original artwork/designs", "Individual participation only"],
+    desc: "A vibrant visual art and design display.",
+    tagline: "Register to view this show",
+    poster: "https://picsum.photos/seed/chromatix/400/200",
+    submissionURL: "https://submission.example.com/chromatix",
+    prizes: [
+      { id: "prize-c1", position: 1, prize: "$500" },
+      { id: "prize-c2", position: 2, prize: "$250" },
+      { id: "prize-c3", position: "Participant", prize: "E-Certificate" }
+    ],
+    rounds: [
+      {
+        id: "round-c1",
+        roundNumber: 1,
+        desc: "Design Round",
+        startDate: "2026-05-25",
+        endDate: "2026-05-28"
+      }
+    ],
+    FAQs: [
+      {
+        id: "faq-c1",
+        question: "Is there any theme?",
+        answer: "The theme will be announced on the start date."
+      }
+    ]
+  },
+  {
     id: "event-1",
     name: "Hackathon 2026",
     genre: "Technicals",
@@ -62,6 +98,7 @@ export const events: Event[] = [
     ],
     poster: "https://picsum.photos/seed/hackathon/400/200",
     tagline: "Code. Build. Win.",
+    submissionURL: "https://example.com/hackathon-submit",
   },
 
   {
@@ -105,6 +142,7 @@ export const events: Event[] = [
     ],
     poster: "https://picsum.photos/seed/design/400/200",
     tagline: "Design that speaks.",
+    submissionURL: "https://example.com/design-submit",
   },
 
   {
@@ -147,5 +185,6 @@ export const events: Event[] = [
       { id: "prize-10", position: "Participant", prize: "E-Certificate" },
     ],
     poster: "https://picsum.photos/seed/ai/400/200",
+    submissionURL: "https://example.com/ai-submit",
   },
 ];
