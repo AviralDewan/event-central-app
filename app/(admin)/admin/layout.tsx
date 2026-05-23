@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../../globals.css";
 import Navbar from "./components/Navbar";
+import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
   title: "Admin Panel | Kaziranga's Super Showdown",
@@ -24,7 +25,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <Navbar />
-        <main className="pt-5">{children}</main>
+        <main className="pt-5">
+          <Providers>{children}</Providers>
+        </main>
       </body>
     </html>
   );

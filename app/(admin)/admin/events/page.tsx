@@ -24,23 +24,28 @@ function Tabs({
   changeTab: (tab: tabType) => void;
 }) {
   return (
-    <div className="flex gap-3 md:gap-5 lg:gap-8">
-      {tabs.map((tab) => (
-        <button
-          key={tab.key}
-          className={`px-5 py-3 rounded-md cursor-pointer ${
-            activeTab === tab.key
-              ? "bg-[#003c34] text-white"
-              : "bg-[#F8FBE4] text-slate-600"
-          }`}
-          onClick={() => {
-            console.log(tab.key);
-            changeTab(tab.key);
-          }}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-3">
+      {tabs.map((tab) => {
+        const active = activeTab === tab.key;
+
+        return (
+          <button
+            key={tab.key}
+            onClick={() => changeTab(tab.key)}
+            className={`
+              px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+              border
+              ${
+                active
+                  ? "bg-[#003c34] text-white border-[#003c34] shadow-md"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-[#003c34] hover:text-[#003c34]"
+              }
+            `}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -52,33 +57,67 @@ export default function Page() {
   const [event, setEvent] = useState<Event>(events[0]);
 
   useEffect(() => {
-    setEvent(events.find((tmpEvent) => tmpEvent.id === eventId));
+    const selectedEvent = events.find((tmpEvent) => tmpEvent.id === eventId);
+
+    if (selectedEvent) {
+      setEvent(selectedEvent);
+    }
   }, [eventId]);
 
   return (
-    <div className="w-full p-3 md:p-5">
-      <Tabs activeTab={tab} changeTab={setTab} />
-      <div className="mt-7 w-[250px] border border-black px-4 py-2 rounded-md">
-        <DropDown
-          selectedOption={eventId}
-          changeOption={setEventId}
-          options={events}
-        />
+    <div className="min-h-screen bg-[#f5f7f4] p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[#003c34]">Event Dashboard</h1>
+
+          <p className="text-slate-500 mt-2">
+            Manage event details, forms, and registrations
+          </p>
+        </div>
+
+        {/* Top Controls */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 md:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+            <Tabs activeTab={tab} changeTab={setTab} />
+
+            <div className="w-full lg:w-[280px]">
+              <div className="border border-slate-300 rounded-xl px-4 py-2 bg-white">
+                <DropDown
+                  selectedOption={eventId}
+                  changeOption={setEventId}
+                  options={events}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Current Section */}
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <h2 className="text-2xl font-semibold text-slate-800">{tab}</h2>
+
+            <p className="text-slate-500 mt-1">
+              Currently viewing{" "}
+              <span className="font-medium text-[#003c34]">{event.name}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="mt-6 bg-white border border-slate-200 rounded-2xl shadow-sm p-5 md:p-7">
+          {tab === "Event Details" && (
+            <EventDetails event={event} setEvent={setEvent} />
+          )}
+
+          {tab === "Registration Form" && (
+            <RegForm event={event} setEvent={setEvent} />
+          )}
+
+          {tab === "Registration Data" && (
+            <RegData event={event} setEvent={setEvent} />
+          )}
+        </div>
       </div>
-
-      <p className="mt-3 text-xl font-medium">
-        {tab} for {event.name}
-      </p>
-
-      {tab === "Event Details" && (
-        <EventDetails event={event} setEvent={setEvent} />
-      )}
-      {tab === "Registration Form" && (
-        <RegForm event={event} setEvent={setEvent} />
-      )}
-      {tab === "Registration Data" && (
-        <RegData event={event} setEvent={setEvent} />
-      )}
     </div>
   );
 }

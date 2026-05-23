@@ -1,9 +1,9 @@
 export default function DropDown({
-  options,
+  options = [],
   selectedOption,
   changeOption,
 }: {
-  options: any[];
+  options?: any[];
   selectedOption: string;
   changeOption: (option: string) => void;
 }) {
