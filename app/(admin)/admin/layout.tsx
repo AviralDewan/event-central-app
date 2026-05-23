@@ -23,8 +23,17 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+<<<<<<< Updated upstream
         <Navbar />
         <main className="pt-5">{children}</main>
+=======
+        <Providers>
+          <Navbar />
+          <main className="pt-5">
+            {children}
+          </main>
+        </Providers>
+>>>>>>> Stashed changes
       </body>
     </html>
   );

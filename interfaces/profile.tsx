@@ -10,6 +10,7 @@ type Position =
   | "Deputy Secretary"
   | "Web Admin"
   | "RC"
+  | "Dept Head"
   | "Event Head"
   | "Event Team"
   | "Student";

@@ -3,10 +3,36 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { events } from "../events/dummyData";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
+<<<<<<< Updated upstream
+=======
+  const userEmail = session?.user?.email || "";
+  
+  // Determine if the user is an Event Head
+  // Event Head: if email is assigned to an event or starts with a roll number prefix
+  const isEventHead =
+    events.some((e) => e.eventHeadEmail === userEmail) ||
+    /^[0-9]+[a-z]+/i.test(userEmail) ||
+    userEmail.startsWith("24f");
+
+  const navLinks = [];
+  if (session) {
+    if (!isEventHead) {
+      navLinks.push({ name: "Home", href: "/admin" });
+    }
+    navLinks.push({ name: "Events", href: "/admin/events" });
+  } else {
+    // If not authenticated, default to Sign In
+    navLinks.push({ name: "Sign In", href: "/admin/sign-in" });
+  }
+
+>>>>>>> Stashed changes
   return (
     <div
       className={`fixed h-screen w-full md:w-[300px] lg:w-[350px] ${
@@ -40,6 +66,7 @@ export default function Navbar() {
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
+<<<<<<< Updated upstream
         <Image
           src="/images/kaziranga-logo.png"
           width={50}
@@ -62,10 +89,56 @@ export default function Navbar() {
         </ul>
 
         <div className="mt-auto">
+=======
+        {/* Logo + Title */}
+        <div className="mt-10 md:mt-4">
+          <Image
+            src="/images/kaziranga-logo.png"
+            width={70}
+            height={70}
+            alt="Kaziranga Logo"
+            className="rounded-md animate-pulse"
+          />
+
+          <div className="mt-4">
+            <h1 className="text-2xl font-semibold tracking-tight text-[#003c34]">
+              Admin Panel
+            </h1>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Kaziranga Super Showdown
+            </p>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="mt-10">
+          <ul className="space-y-2">
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center rounded-xl px-4 py-3 text-lg font-medium text-slate-700 transition hover:bg-slate-100 hover:text-[#003c34]"
+                >
+                  {link.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Footer */}
+        <div className="mt-auto border-t border-slate-200 pt-5">
+>>>>>>> Stashed changes
           <Link
             onClick={() => setMenuOpen(false)}
+<<<<<<< Updated upstream
             href="/"
             className="flex items-center gap-x-1 cursor-pointer"
+=======
+            className="flex items-center gap-2 rounded-lg px-2 py-2 text-slate-700 transition hover:bg-slate-100 hover:text-[#003c34]"
+>>>>>>> Stashed changes
           >
             <span className="material-symbols-outlined">arrow_outward</span>
             Go to Student Site
@@ -76,7 +149,11 @@ export default function Navbar() {
                 "Admin Panel for Kaziranga's Super Showdown.\nFor authorised members only.\nFor queries, contact kaziranga-webad@study.iitm.ac.in"
               )
             }
+<<<<<<< Updated upstream
             className="flex items-center gap-x-1 cursor-pointer"
+=======
+            className="mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-slate-700 transition hover:bg-slate-100 hover:text-[#003c34]"
+>>>>>>> Stashed changes
           >
             <span className="material-symbols-outlined">info</span>
             <p className="mt-2">Info</p>

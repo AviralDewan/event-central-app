@@ -37,4 +37,6 @@ export default interface Event {
   rounds: Round[];
   FAQs: FAQ[];
   submissionURL: string;
+  eventHeadEmail?: string;
+  isSubmittedByHead?: boolean;
 }

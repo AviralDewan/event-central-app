@@ -1,16 +1,16 @@
 import Event from "@/interfaces/event";
 import Profile from "@/interfaces/profile";
 
-export const mockProfile = (name: string): Profile => ({
+export const mockProfile = (name: string, pos: Profile["pos"] = "Student"): Profile => ({
   name,
-  email: `${name.toLowerCase().replace(/\s+/g, "")}@example.com`,
-  level: "Foundation", // adjust based on your enum
-  program: "Data Science", // adjust based on your enum
+  email: `${name.toLowerCase().replace(/\s+/g, "")}@ds.study.iitm.ac.in`,
+  level: "Foundation",
+  program: "Data Science",
   mobile: 9876543210,
   state: "Punjab",
   academic_status: "Standalone",
   points: 0,
-  pos: "Student", // adjust based on your type
+  pos,
   perms: [],
 });
 
@@ -55,10 +55,12 @@ export const events: Event[] = [
     id: "event-1",
     name: "Hackathon 2026",
     genre: "Technicals",
-    finalLevelApproved: [true, mockProfile("Alice")],
-    firstLevelApproved: [true, mockProfile("Bob")],
-    createdBy: mockProfile("Charlie"),
-    eventTeam: [mockProfile("Alice"), mockProfile("Bob")],
+    finalLevelApproved: [true, mockProfile("Alice", "Event Head")],
+    firstLevelApproved: [true, mockProfile("Bob", "Event Team")],
+    createdBy: mockProfile("Charlie", "Dept Head"),
+    eventTeam: [mockProfile("Alice", "Event Head"), mockProfile("Bob", "Event Team")],
+    eventHeadEmail: "alice@ds.study.iitm.ac.in",
+    isSubmittedByHead: true,
     createdOn: "2026-03-01",
     rules: ["No plagiarism", "Teams of max 4", "Submit before deadline"],
     desc: "A 24-hour coding competition to build innovative solutions.",
@@ -98,17 +100,23 @@ export const events: Event[] = [
     ],
     poster: "https://picsum.photos/seed/hackathon/400/200",
     tagline: "Code. Build. Win.",
+<<<<<<< Updated upstream
     submissionURL: "https://example.com/hackathon-submit",
+=======
+    submissionURL: "https://google.com",
+>>>>>>> Stashed changes
   },
 
   {
     id: "event-2",
     name: "UI/UX Design Challenge",
     genre: "Sports",
-    finalLevelApproved: [false, mockProfile("George")],
-    firstLevelApproved: [true, mockProfile("David")],
-    createdBy: mockProfile("Eva"),
-    eventTeam: [mockProfile("David"), mockProfile("Fiona")],
+    finalLevelApproved: "pending",
+    firstLevelApproved: [true, mockProfile("David", "Event Head")],
+    createdBy: mockProfile("Eva", "Dept Head"),
+    eventTeam: [mockProfile("David", "Event Head"), mockProfile("Fiona", "Event Team")],
+    eventHeadEmail: "david@ds.study.iitm.ac.in",
+    isSubmittedByHead: false,
     createdOn: "2026-02-15",
     rules: ["Original designs only", "Submit Figma link"],
     desc: "Design intuitive and visually appealing user interfaces.",
@@ -142,7 +150,11 @@ export const events: Event[] = [
     ],
     poster: "https://picsum.photos/seed/design/400/200",
     tagline: "Design that speaks.",
+<<<<<<< Updated upstream
     submissionURL: "https://example.com/design-submit",
+=======
+    submissionURL: "https://google.com",
+>>>>>>> Stashed changes
   },
 
   {
@@ -151,8 +163,10 @@ export const events: Event[] = [
     genre: "Culturals",
     finalLevelApproved: "pending",
     firstLevelApproved: "pending",
-    createdBy: mockProfile("George"),
-    eventTeam: [mockProfile("Hannah")],
+    createdBy: mockProfile("George", "Dept Head"),
+    eventTeam: [mockProfile("Hannah", "Event Head")],
+    eventHeadEmail: "hannah@ds.study.iitm.ac.in",
+    isSubmittedByHead: false,
     createdOn: "2026-04-01",
     rules: ["No cheating", "Individual participation only"],
     desc: "Test your knowledge in Artificial Intelligence and ML.",
@@ -185,6 +199,10 @@ export const events: Event[] = [
       { id: "prize-10", position: "Participant", prize: "E-Certificate" },
     ],
     poster: "https://picsum.photos/seed/ai/400/200",
+<<<<<<< Updated upstream
     submissionURL: "https://example.com/ai-submit",
+=======
+    submissionURL: "https://google.com",
+>>>>>>> Stashed changes
   },
 ];

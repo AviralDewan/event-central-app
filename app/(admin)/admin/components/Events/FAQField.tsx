@@ -5,13 +5,15 @@ export default function FAQField({
   faq,
   idx,
   updateFAQ,
+  disabled,
 }: {
   faq: FAQ;
   idx: number;
   updateFAQ: (idx: number, field: string, val: string) => void;
+  disabled?: boolean;
 }) {
   return (
-    <div className="p-3 flex flex-col w-full">
+    <div className="p-3 flex flex-col w-full gap-3">
       <Input
         placeholder="Enter Question"
         label="Question"
@@ -19,6 +21,7 @@ export default function FAQField({
         required={false}
         textArea={false}
         changeValue={(e: string) => updateFAQ(idx, "question", e)}
+        disabled={disabled}
       />
       <Input
         label="Answer"
@@ -27,6 +30,7 @@ export default function FAQField({
         required={false}
         textArea={false}
         changeValue={(e: string) => updateFAQ(idx, "answer", e)}
+        disabled={disabled}
       />
     </div>
   );
