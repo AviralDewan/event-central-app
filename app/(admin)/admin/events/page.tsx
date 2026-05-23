@@ -9,6 +9,7 @@ import EventDetails from "./sections/EventDetails";
 import RegForm from "./sections/RegForm";
 import Event from "@/interfaces/event";
 import Profile from "@/interfaces/profile";
+import { fetchApi } from "@/lib/apiClient";
 
 type tabType = "Event Details" | "Registration Form" | "Registration Data";
 
@@ -49,84 +50,94 @@ function Tabs({
 export default function Page() {
   const { data: session, status: sessionStatus } = useSession();
 
-  // State for all events
-  const [eventsList, setEventsList] = useState<Event[]>(initialEvents);
+  const [eventsList, setEventsList] = useState<Event[]>([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
 
   const [tab, setTab] = useState<tabType>("Event Details");
-  const [eventId, setEventId] = useState(initialEvents[0].id);
-  const [event, setEvent] = useState<Event>(initialEvents[0]);
+  const [eventId, setEventId] = useState("");
+  const [event, setEvent] = useState<Event | null>(null);
 
-  // Modal states for creating event
   const [showAddModal, setShowAddModal] = useState(false);
   const [newEventName, setNewEventName] = useState("");
   const [newEventHeadEmail, setNewEventHeadEmail] = useState("");
   const [modalError, setModalError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-<<<<<<< Updated upstream
+  const backendUser = (session as any)?.backendUser;
+  
+  // Logic to determine if user is Dept Head based on global/department role
+  const deptHeadRoles = ["admin", "super_core", "core", "dep_core", "super_coordinator", "coordinator"];
+  const isDeptHead = 
+    deptHeadRoles.includes(backendUser?.role) ||
+    backendUser?.departments?.some((d: any) => deptHeadRoles.includes(d.role));
+
+  const activeRole = isDeptHead ? "Dept Head" : "Event Head";
+
+  // Fetch Events from API
   useEffect(() => {
-    const found = events.find((tmpEvent) => tmpEvent.id === eventId);
-    if (found) {
-      setEvent(found);
-=======
-  // Resolve role and email directly from real NextAuth session
-  const userEmail = session?.user?.email || "";
-  const isEventHead =
-    eventsList.some((e) => e.eventHeadEmail === userEmail) ||
-    /^[0-9]+[a-z]+/i.test(userEmail) ||
-    userEmail.startsWith("24f");
+    const loadEvents = async () => {
+      try {
+        setIsLoadingEvents(true);
+        // Call backend API to get events
+        const data = await fetchApi("/api/events/");
+        
+        // Handle null/error response or DRF paginated response
+        const apiEventsArray = data ? (data.results ? data.results : (Array.isArray(data) ? data : [])) : [];
+        
+        // Map backend event structure to frontend Event interface
+        const mappedEvents: Event[] = apiEventsArray.map((apiEvent: any) => ({
+          id: apiEvent.id,
+          name: apiEvent.title,
+          // Only lock the form if the backend explicitly marks it as "approved"
+          finalLevelApproved: apiEvent.status === "approved" ? [true, mockProfile("Admin")] : "pending",
+          firstLevelApproved: apiEvent.status === "approved" || apiEvent.status === "pending_approval" ? [true, mockProfile("Core")] : "pending",
+          createdBy: mockProfile(apiEvent.created_by_name || "Unknown"),
+          eventTeam: [],
+          createdOn: apiEvent.created_at ? apiEvent.created_at.split("T")[0] : "",
+          tagline: apiEvent.category_name || "",
+          poster: apiEvent.poster || "",
+          desc: apiEvent.description || "",
+          genre: "Technicals", 
+          prizes: [],
+          rules: [],
+          rounds: [],
+          FAQs: [],
+          submissionURL: "",
+          eventHeadEmail: "", 
+          isSubmittedByHead: apiEvent.status === "pending_approval",
+        }));
+        
+        setEventsList(mappedEvents);
+      } catch (error) {
+        console.error("Failed to fetch events from API, falling back to dummy data", error);
+        setEventsList(initialEvents); // Fallback to dummy data if API fails
+      } finally {
+        setIsLoadingEvents(false);
+      }
+    };
 
-  const activeRole = isEventHead ? "Event Head" : "Dept Head";
-
-  // Get list of events visible to current role
-  const visibleEvents = eventsList.filter((tmpEvent) => {
-    if (activeRole === "Dept Head") {
-      return true; // Dept Head sees all events
->>>>>>> Stashed changes
+    if (sessionStatus === "authenticated") {
+      loadEvents();
     }
-    // Event Head only sees their assigned events
-    return tmpEvent.eventHeadEmail === userEmail;
-  });
+  }, [sessionStatus]);
 
-  // Ensure selected event is valid and visible
   useEffect(() => {
-    if (visibleEvents.length > 0) {
-      const isCurrentVisible = visibleEvents.some((e) => e.id === eventId);
-      if (!isCurrentVisible) {
-        // Default to the first visible event
-        setEventId(visibleEvents[0].id);
-        setEvent(visibleEvents[0]);
+    if (eventsList.length > 0) {
+      if (!eventId || !eventsList.some((e) => e.id === eventId)) {
+        setEventId(eventsList[0].id);
+        setEvent(eventsList[0]);
       } else {
-        const selectedEvent = visibleEvents.find((tmpEvent) => tmpEvent.id === eventId);
+        const selectedEvent = eventsList.find((tmpEvent) => tmpEvent.id === eventId);
         if (selectedEvent) {
           setEvent(selectedEvent);
         }
       }
     } else {
-      // No events visible
       setEventId("");
-      // Set to dummy empty event object to avoid crashes
-      setEvent({
-        id: "",
-        name: "No Assigned Events",
-        finalLevelApproved: "pending",
-        firstLevelApproved: "pending",
-        createdBy: mockProfile("System"),
-        eventTeam: [],
-        createdOn: "",
-        tagline: "",
-        poster: "",
-        desc: "",
-        genre: "Technicals",
-        prizes: [],
-        rules: [],
-        rounds: [],
-        FAQs: [],
-        submissionURL: "",
-      });
+      setEvent(null);
     }
-  }, [eventId, activeRole, userEmail, eventsList]);
+  }, [eventId, eventsList]);
 
-  // Synchronize changes to current event back to list state
   const handleEventUpdate = (update: Event | ((prev: Event) => Event)) => {
     setEventsList((prevList) => {
       return prevList.map((e) => {
@@ -140,85 +151,101 @@ export default function Page() {
     });
   };
 
-  // Handle creating a new event (Dept Head only)
-  const handleCreateEvent = (e: React.FormEvent) => {
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalError("");
+    setIsSubmitting(true);
 
-    if (!newEventName.trim()) {
-      setModalError("Event name is required");
+    if (!newEventName.trim() || newEventName.trim().length < 3) {
+      setModalError("Valid event name is required (min 3 chars)");
+      setIsSubmitting(false);
       return;
     }
-    if (newEventName.trim().length < 3) {
-      setModalError("Event name must be at least 3 characters");
-      return;
-    }
-    if (!newEventHeadEmail.trim()) {
-      setModalError("Event Head email is required");
-      return;
-    }
-    // Strict IITM email validation
-    if (!newEventHeadEmail.toLowerCase().endsWith("@ds.study.iitm.ac.in")) {
-      setModalError("Email must belong to the IITM organization (@ds.study.iitm.ac.in)");
+    if (!newEventHeadEmail.trim() || !newEventHeadEmail.toLowerCase().endsWith("@ds.study.iitm.ac.in")) {
+      setModalError("Valid IITM email is required (@ds.study.iitm.ac.in)");
+      setIsSubmitting(false);
       return;
     }
 
-    // Create the new event object
-    const createdByProfile: Profile = mockProfile(
-      session?.user?.name || "Dept Head User",
-      "Dept Head"
-    );
-    if (session?.user?.email) {
-      createdByProfile.email = session.user.email;
+    if (!backendUser?.departments || backendUser.departments.length === 0) {
+      setModalError("You are not part of any dep so be part of any dep to create an event");
+      setIsSubmitting(false);
+      return;
     }
 
-    const newEvent: Event = {
-      id: `event-${Date.now()}`,
-      name: newEventName.trim(),
-      finalLevelApproved: "pending",
-      firstLevelApproved: "pending",
-      createdBy: createdByProfile,
-      eventTeam: [
-        {
-          name: "Assigned Event Head",
-          email: newEventHeadEmail.trim().toLowerCase(),
-          level: "Diploma",
-          program: "Data Science",
-          mobile: 0,
-          state: "",
-          academic_status: "Standalone",
-          pos: "Event Head",
-        },
-      ],
-      eventHeadEmail: newEventHeadEmail.trim().toLowerCase(),
-      isSubmittedByHead: false,
-      createdOn: new Date().toISOString().split("T")[0],
-      tagline: "",
-      poster: "",
-      desc: "",
-      genre: "Technicals",
-      rules: [],
-      rounds: [],
-      FAQs: [],
-      prizes: [
-        { id: "p1", position: 1, prize: "" },
-        { id: "p2", position: 2, prize: "" },
-        { id: "p3", position: 3, prize: "" },
-      ],
-      submissionURL: "",
-    };
+    try {
+      // API call to create event
+      // Sending default values for required fields like department, category, dates since form doesn't have them yet.
+      const payload = {
+        title: newEventName.trim(),
+        description: "New event description",
+        department: backendUser.departments[0].department__id,
+        category: null, // Set to null instead of 1 to avoid does_not_exist validation error
+        venue: "TBD",
+        start_date: new Date(Date.now() + 86400000).toISOString(), // +1 day
+        end_date: new Date(Date.now() + 172800000).toISOString(), // +2 days
+        registration_deadline: new Date().toISOString(), // today
+        capacity: 100,
+        fee: 0,
+        visibility: "public"
+      };
 
-    setEventsList((prev) => [newEvent, ...prev]);
-    setEventId(newEvent.id);
-    setEvent(newEvent);
+      const createdEvent = await fetchApi("/api/events/", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
 
-    // Reset form and close modal
-    setNewEventName("");
-    setNewEventHeadEmail("");
-    setShowAddModal(false);
+      // After creating, we should also assign the Event Head using the team endpoint
+      if (createdEvent && createdEvent.id) {
+        try {
+          await fetchApi(`/api/events/${createdEvent.id}/team/`, {
+            method: "POST",
+            body: JSON.stringify({
+              email: newEventHeadEmail.trim().toLowerCase(),
+              role: "head"
+            })
+          });
+        } catch (teamError) {
+          console.error("Failed to assign event head:", teamError);
+        }
+
+        // Map and add to state
+        const newFrontendEvent: Event = {
+          id: createdEvent.id,
+          name: createdEvent.title,
+          finalLevelApproved: "pending",
+          firstLevelApproved: "pending",
+          createdBy: mockProfile(session?.user?.name || "Admin"),
+          eventTeam: [],
+          createdOn: new Date().toISOString().split("T")[0],
+          poster: "",
+          desc: createdEvent.description,
+          genre: "Technicals",
+          prizes: [],
+          rules: [],
+          rounds: [],
+          FAQs: [],
+          submissionURL: "",
+          eventHeadEmail: newEventHeadEmail.trim().toLowerCase(),
+          isSubmittedByHead: false,
+        };
+
+        setEventsList((prev) => [newFrontendEvent, ...prev]);
+        setEventId(newFrontendEvent.id);
+        setEvent(newFrontendEvent);
+      }
+      
+      setNewEventName("");
+      setNewEventHeadEmail("");
+      setShowAddModal(false);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      setModalError("Failed to create event via API.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Enforce session check
   if (sessionStatus === "loading") {
     return (
       <div className="min-h-screen bg-[#f5f7f4] flex items-center justify-center">
@@ -231,17 +258,14 @@ export default function Page() {
   }
 
   if (sessionStatus === "unauthenticated") {
-    // Redirect to sign in page
     if (typeof window !== "undefined") {
       window.location.href = "/admin/sign-in";
     }
     return null;
   }
 
-  // Double check email validation just in case (uses userEmail defined above)
-  const isEmailValid = userEmail.endsWith("@ds.study.iitm.ac.in");
-
-  if (!isEmailValid) {
+  const userEmail = session?.user?.email || "";
+  if (!userEmail.endsWith("@ds.study.iitm.ac.in")) {
     return (
       <div className="min-h-screen bg-[#f5f7f4] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-3xl border border-red-200 p-8 shadow-xl text-center">
@@ -265,32 +289,6 @@ export default function Page() {
   }
 
   return (
-<<<<<<< Updated upstream
-    <div className="w-full p-4 md:p-6 flex flex-col">
-      <Tabs activeTab={tab} changeTab={setTab} />
-      <div className="mt-6 w-[250px] border border-zinc-850 px-4 py-2 rounded-md bg-[#030303]">
-        <DropDown
-          selectedOption={eventId}
-          changeOption={setEventId}
-          options={events}
-        />
-      </div>
-
-      {tab === "Event Details" && (
-        <p className="mt-5 text-xl font-bold text-white">
-          Event Details for {event.name}
-        </p>
-      )}
-
-      {tab === "Event Details" && (
-        <EventDetails event={event} setEvent={setEvent} />
-      )}
-      {tab === "Registration Form" && (
-        <RegForm event={event} setEvent={setEvent} />
-      )}
-      {tab === "Registration Data" && (
-        <RegData event={event} setEvent={setEvent} />
-=======
     <div className="min-h-screen bg-[#f5f7f4] p-4 md:p-8 relative">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -302,16 +300,24 @@ export default function Page() {
             </p>
           </div>
 
-          {/* Add Event Button (Dept Head Only) */}
-          {activeRole === "Dept Head" && (
+          <div className="flex gap-3">
+            {activeRole === "Dept Head" && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-[#003c34] hover:bg-[#002d27] px-6 py-3.5 font-semibold text-white shadow-lg transition active:scale-[0.98]"
+              >
+                <span className="material-symbols-outlined text-lg">add_circle</span>
+                Add Event
+              </button>
+            )}
             <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-[#003c34] hover:bg-[#002d27] px-6 py-3.5 font-semibold text-white shadow-lg transition active:scale-[0.98]"
+              onClick={() => signOut()}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-red-600 hover:bg-red-700 px-6 py-3.5 font-semibold text-white shadow-lg transition active:scale-[0.98]"
             >
-              <span className="material-symbols-outlined text-lg">add_circle</span>
-              Add Event
+              <span className="material-symbols-outlined text-lg">logout</span>
+              Sign Out
             </button>
-          )}
+          </div>
         </div>
 
         {/* Top Controls */}
@@ -321,11 +327,11 @@ export default function Page() {
 
             <div className="w-full lg:w-[280px]">
               <div className="border border-slate-300 rounded-xl px-4 py-2 bg-white">
-                {visibleEvents.length > 0 ? (
+                {eventsList.length > 0 ? (
                   <DropDown
                     selectedOption={eventId}
                     changeOption={setEventId}
-                    options={visibleEvents}
+                    options={eventsList}
                   />
                 ) : (
                   <span className="text-sm text-slate-400 font-medium block text-center">No Events Available</span>
@@ -337,7 +343,7 @@ export default function Page() {
           {/* Current Section */}
           <div className="mt-6 border-t border-slate-100 pt-5">
             <h2 className="text-2xl font-semibold text-slate-800">{tab}</h2>
-            {visibleEvents.length > 0 ? (
+            {event ? (
               <p className="text-slate-500 mt-1">
                 Currently viewing{" "}
                 <span className="font-medium text-[#003c34]">{event.name}</span>
@@ -345,26 +351,24 @@ export default function Page() {
             ) : (
               <p className="text-amber-600 mt-1 flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-lg">warning</span>
-                No events are currently assigned to you.
+                No events are currently available.
               </p>
             )}
           </div>
         </div>
 
         {/* Content */}
-        {visibleEvents.length > 0 && (
+        {event && (
           <div className="mt-6 bg-white border border-slate-200 rounded-2xl shadow-sm p-5 md:p-7">
             {tab === "Event Details" && (
               <EventDetails
                 event={event}
                 setEvent={handleEventUpdate}
-                userRole={activeRole}
-                userEmail={simulatedEmail}
               />
             )}
 
             {tab === "Registration Form" && (
-              <RegForm event={event} />
+              <RegForm event={event} setEvent={handleEventUpdate} />
             )}
 
             {tab === "Registration Data" && (
@@ -379,7 +383,7 @@ export default function Page() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-bold text-slate-800">Assign New Event</h3>
+              <h3 className="text-xl font-bold text-slate-800">Create New Event</h3>
               <button
                 onClick={() => {
                   setShowAddModal(false);
@@ -431,20 +435,21 @@ export default function Page() {
                     setModalError("");
                   }}
                   className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#003c34] text-white text-sm font-semibold hover:bg-[#002d27] transition"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-[#003c34] text-white text-sm font-semibold hover:bg-[#002d27] transition disabled:opacity-50"
                 >
-                  Create & Assign
+                  {isSubmitting ? "Creating..." : "Create & Assign"}
                 </button>
               </div>
             </form>
           </div>
         </div>
->>>>>>> Stashed changes
       )}
     </div>
   );

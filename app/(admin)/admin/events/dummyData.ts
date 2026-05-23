@@ -100,11 +100,7 @@ export const events: Event[] = [
     ],
     poster: "https://picsum.photos/seed/hackathon/400/200",
     tagline: "Code. Build. Win.",
-<<<<<<< Updated upstream
     submissionURL: "https://example.com/hackathon-submit",
-=======
-    submissionURL: "https://google.com",
->>>>>>> Stashed changes
   },
 
   {
@@ -150,11 +146,7 @@ export const events: Event[] = [
     ],
     poster: "https://picsum.photos/seed/design/400/200",
     tagline: "Design that speaks.",
-<<<<<<< Updated upstream
     submissionURL: "https://example.com/design-submit",
-=======
-    submissionURL: "https://google.com",
->>>>>>> Stashed changes
   },
 
   {
@@ -199,10 +191,6 @@ export const events: Event[] = [
       { id: "prize-10", position: "Participant", prize: "E-Certificate" },
     ],
     poster: "https://picsum.photos/seed/ai/400/200",
-<<<<<<< Updated upstream
     submissionURL: "https://example.com/ai-submit",
-=======
-    submissionURL: "https://google.com",
->>>>>>> Stashed changes
   },
 ];

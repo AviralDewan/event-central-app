@@ -4,26 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { events } from "../events/dummyData";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session } = useSession();
 
-<<<<<<< Updated upstream
-=======
-  const userEmail = session?.user?.email || "";
+  const backendUser = (session as any)?.backendUser;
   
-  // Determine if the user is an Event Head
-  // Event Head: if email is assigned to an event or starts with a roll number prefix
-  const isEventHead =
-    events.some((e) => e.eventHeadEmail === userEmail) ||
-    /^[0-9]+[a-z]+/i.test(userEmail) ||
-    userEmail.startsWith("24f");
+  // Logic to determine if user is Dept Head based on global/department role
+  const isDeptHead = 
+    backendUser?.role === "admin" || 
+    backendUser?.role === "core" || 
+    backendUser?.role === "super_core" ||
+    backendUser?.departments?.some((d: any) => d.role === "coordinator");
 
   const navLinks = [];
   if (session) {
-    if (!isEventHead) {
+    if (isDeptHead) {
       navLinks.push({ name: "Home", href: "/admin" });
     }
     navLinks.push({ name: "Events", href: "/admin/events" });
@@ -32,7 +29,6 @@ export default function Navbar() {
     navLinks.push({ name: "Sign In", href: "/admin/sign-in" });
   }
 
->>>>>>> Stashed changes
   return (
     <div
       className={`fixed h-screen w-full md:w-[300px] lg:w-[350px] ${
@@ -66,30 +62,6 @@ export default function Navbar() {
           menuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-<<<<<<< Updated upstream
-        <Image
-          src="/images/kaziranga-logo.png"
-          width={50}
-          height={50}
-          alt="Kaziranga Logo"
-          className="mt-7 md:mt-5 md:w-[70px]"
-        />
-        <p className="mt-2 text-xl">Admin Panel</p>
-        <ul className="mt-5 md:mt-7 list-style-none">
-          <li className="mt-2 text-lg">
-            <Link onClick={() => setMenuOpen(false)} href="/admin">
-              Home
-            </Link>
-          </li>
-          <li className="mt-4 text-lg">
-            <Link onClick={() => setMenuOpen(false)} href="/admin/events">
-              Events
-            </Link>
-          </li>
-        </ul>
-
-        <div className="mt-auto">
-=======
         {/* Logo + Title */}
         <div className="mt-10 md:mt-4">
           <Image
@@ -130,15 +102,10 @@ export default function Navbar() {
 
         {/* Footer */}
         <div className="mt-auto border-t border-slate-200 pt-5">
->>>>>>> Stashed changes
           <Link
             onClick={() => setMenuOpen(false)}
-<<<<<<< Updated upstream
             href="/"
-            className="flex items-center gap-x-1 cursor-pointer"
-=======
             className="flex items-center gap-2 rounded-lg px-2 py-2 text-slate-700 transition hover:bg-slate-100 hover:text-[#003c34]"
->>>>>>> Stashed changes
           >
             <span className="material-symbols-outlined">arrow_outward</span>
             Go to Student Site
@@ -149,16 +116,12 @@ export default function Navbar() {
                 "Admin Panel for Kaziranga's Super Showdown.\nFor authorised members only.\nFor queries, contact kaziranga-webad@study.iitm.ac.in"
               )
             }
-<<<<<<< Updated upstream
-            className="flex items-center gap-x-1 cursor-pointer"
-=======
-            className="mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-slate-700 transition hover:bg-slate-100 hover:text-[#003c34]"
->>>>>>> Stashed changes
+            className="mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-slate-700 transition hover:bg-slate-100 hover:text-[#003c34] cursor-pointer"
           >
             <span className="material-symbols-outlined">info</span>
-            <p className="mt-2">Info</p>
+            <p>Info</p>
           </div>
-          <p className="mt-3 border-t border-t-slate-300 pt-2">
+          <p className="mt-3 border-t border-t-slate-300 pt-2 text-sm text-slate-500">
             &copy; 2026, Kaziranga - IIT Madras
           </p>
         </div>

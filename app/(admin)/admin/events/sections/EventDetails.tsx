@@ -1,10 +1,6 @@
 "use client";
 
-<<<<<<< Updated upstream
-import { Dispatch, SetStateAction, useState } from "react";
-=======
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
->>>>>>> Stashed changes
 import DropDown from "../../components/Events/DropDown";
 import Section from "../../components/Events/Section";
 import { events } from "../dummyData";
@@ -14,6 +10,11 @@ import FAQField from "../../components/Events/FAQField";
 import RoundField from "../../components/Events/RoundField";
 import Profile from "@/interfaces/profile";
 import { mockProfile } from "../dummyData";
+import { fetchApi } from "@/lib/apiClient";
+
+const MAX_RULES = 20;
+const MAX_ROUNDS = 10;
+const MAX_FAQS = 15;
 
 export default function EventDetails({
   event,
@@ -26,12 +27,6 @@ export default function EventDetails({
   userRole: "Dept Head" | "Event Head";
   userEmail: string;
 }) {
-<<<<<<< Updated upstream
-  const updateFAQ = (idx: number, field: string, val: string) => {
-    const updatedFAQs = [...event.FAQs];
-    updatedFAQs[idx] = { ...updatedFAQs[idx], [field]: val };
-    setEvent((event) => ({ ...event, FAQs: updatedFAQs }));
-=======
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<ErrorState>({});
   const [successMessage, setSuccessMessage] = useState("");
@@ -178,28 +173,10 @@ export default function EventDetails({
       ...prev,
       prizes: updatedPrizes,
     }));
->>>>>>> Stashed changes
   };
 
   const updateRule = (idx: number, rule: string) => {
     const updatedRules = [...event.rules];
-<<<<<<< Updated upstream
-    updatedRules[idx] = rule;
-    setEvent((event) => ({ ...event, ["rules"]: updatedRules }));
-  };
-
-  const updateEvent = (property: string, value: any) => {
-    setEvent((event) => ({
-      ...event,
-      [property]: value,
-    }));
-  };
-
-  const updatePrize = (idx: number, val: string) => {
-    const updatedPrizes = [...event.prizes];
-    updatedPrizes[idx].prize = val;
-    setEvent((event) => ({ ...event, ["prizes"]: updatedPrizes }));
-=======
     updatedRules[idx] = sanitize(rule);
     setEvent((prev: Event) => ({
       ...prev,
@@ -217,7 +194,6 @@ export default function EventDetails({
       ...prev,
       FAQs: updatedFAQs,
     }));
->>>>>>> Stashed changes
   };
 
   const updateRound = (
@@ -227,31 +203,6 @@ export default function EventDetails({
     date: string
   ) => {
     const updatedRounds = [...event.rounds];
-<<<<<<< Updated upstream
-    if (type === "desc") updatedRounds[idx].desc = val;
-    else if (type === "startDate") updatedRounds[idx].startDate = date;
-    else updatedRounds[idx].endDate = date;
-
-    setEvent((event) => ({ ...event, ["rounds"]: updatedRounds }));
-  };
-
-  const submitEvent = (e: any) => {
-    e.preventDefault();
-
-    alert("Event updated");
-  };
-
-  return (
-    <form>
-      <div className="w-full flex justify-between">
-        <p className="mt-5">
-          {((event?.firstLevelApproved === "pending" &&
-            event?.finalLevelApproved === "pending") ||
-            (event?.firstLevelApproved != "pending" &&
-              event?.finalLevelApproved === "pending")) && (
-            <span className="bg-slate-600 text-white px-5 py-2 text-md rounded-full">
-              Pending
-=======
     if (type === "desc") {
       updatedRounds[idx].desc = sanitize(val);
     } else if (type === "startDate") {
@@ -454,10 +405,21 @@ export default function EventDetails({
       setLoading(true);
       const success = await runFullValidationAndSave(false);
       if (success) {
+        // API call to update event
+        await fetchApi(`/api/events/${event.id}/`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            title: event.name,
+            description: event.desc,
+            poster: event.poster,
+            // Add other fields as necessary based on API
+          })
+        });
         setSuccessMessage("Event updated successfully");
       }
     } catch (err) {
       console.error(err);
+      setErrors({ name: "API Error: Could not save event." });
     } finally {
       setLoading(false);
     }
@@ -485,10 +447,22 @@ export default function EventDetails({
         submissionURL: sanitize(event.submissionURL || ""),
         isSubmittedByHead: false, // Explicitly keeping it as a draft
       };
+      
+      // Save draft to API
+      await fetchApi(`/api/events/${event.id}/`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            title: updatedEvent.name,
+            description: updatedEvent.desc,
+            poster: updatedEvent.poster,
+          })
+      });
+
       setEvent(updatedEvent);
       setSuccessMessage("Draft changes saved successfully.");
     } catch (err) {
       console.error(err);
+      setErrors({ name: "API Error: Could not save draft." });
     } finally {
       setLoading(false);
     }
@@ -501,10 +475,24 @@ export default function EventDetails({
       setLoading(true);
       const success = await runFullValidationAndSave(true);
       if (success) {
+        // First update the event
+        await fetchApi(`/api/events/${event.id}/`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            title: event.name,
+            description: event.desc,
+            poster: event.poster,
+          })
+        });
+        // Then submit for approval
+        await fetchApi(`/api/events/${event.id}/submit/`, {
+          method: "POST"
+        });
         setSuccessMessage("Event submitted successfully. Waiting for Department Head approval.");
       }
     } catch (err) {
       console.error(err);
+      setErrors({ name: "API Error: Could not submit event." });
     } finally {
       setLoading(false);
     }
@@ -540,190 +528,9 @@ export default function EventDetails({
               className={`px-4 py-2 rounded-full text-sm font-semibold ${statusStyles[status]}`}
             >
               {status} {event.isSubmittedByHead && status === "Pending" ? "(Review Needed)" : ""}
->>>>>>> Stashed changes
             </span>
-          )}
-          {(event?.firstLevelApproved[0] === false ||
-            event?.finalLevelApproved[0] === false) && (
-            <span className="bg-red-500 text-white px-5 py-2 text-md rounded-full">
-              Rejected
-            </span>
-          )}
-          {event?.finalLevelApproved[0] === true && (
-            <span className="bg-green-500 text-white px-5 py-2 text-md rounded-full">
-              Approved
-            </span>
-          )}
-        </p>
-
-<<<<<<< Updated upstream
-        {/* based on user position/perms enable first/final approval */}
-
-        {/* <DropDown
-          options={[
-            { id: "FinalLevelApproved", name: "Approve at Final Level" },
-            { id: "FinalLevelRejected", name: "Reject at Final Level" },
-            { id: "Pending", name: "Mark for Review later" },
-          ]}
-        /> */}
-      </div>
-      <Section customStyles="mt-10">
-        <Input
-          placeholder="Enter Event Name"
-          value={event.name}
-          changeValue={(val) => updateEvent("name", val)}
-          label="Event Name"
-          required={true}
-          textArea={false}
-        />
-        <Input
-          placeholder="Enter Tagline for your Event"
-          value={event.tagline}
-          changeValue={(val) => updateEvent("tagline", val)}
-          label="Tagline"
-          required={false}
-          textArea={false}
-        />
-        <Input
-          placeholder="Enter Public link for Poster"
-          value={event.poster}
-          changeValue={(val) => updateEvent("poster", val)}
-          label="Event Poster"
-          required={true}
-          textArea={false}
-        />
-        <Input
-          placeholder="Enter Event Description"
-          value={event.desc}
-          changeValue={(val) => updateEvent("desc", val)}
-          label="Event Description for Participants"
-          required={true}
-          textArea={true}
-        />
-        <Input
-          placeholder="Enter Event Submission Form URL"
-          value={event.submissionURL}
-          changeValue={(val) => updateEvent("submissionUrl", val)}
-          label="Event Submission Form URL"
-          required={true}
-          textArea={false}
-        />
-        <div className="flex flex-col">
-          <label className="">
-            Event Genre <span className="text-red-500">*</span>
-          </label>
-          <div className="w-full border border-black px-4 py-2 rounded-md">
-            <DropDown
-              options={[
-                { id: "Technicals", name: "Technicals" },
-                { id: "Culturals", name: "Culturals" },
-                { id: "Sports", name: "Sports" },
-              ]}
-              selectedOption={event.genre}
-              changeOption={(option) => updateEvent("genre", option)}
-            />
           </div>
-        </div>
-      </Section>
-      <Section customStyles="mt-8">
-        <p className="text-lg">Prizes</p>
-        {event.prizes.map((prize, idx) => (
-          <Input
-            key={prize.id}
-            placeholder={`Enter Prize for #${prize.position}`}
-            value={prize.prize}
-            changeValue={(e: string) => updatePrize(idx, e)}
-            required={false}
-            label={`Enter Prize for #${prize.position}`}
-            textArea={false}
-          />
-        ))}
-      </Section>
-      <Section customStyles="mt-8">
-        <p className="text-lg">Rules</p>
-        {event.rules.map((rule, idx) => (
-          <Input
-            key={idx}
-            placeholder={`Enter the Rule`}
-            value={rule}
-            changeValue={(e: string) => updateRule(idx, e)}
-            required={false}
-            label={`Rule #${idx + 1}`}
-            textArea={false}
-          />
-        ))}
-        <button
-          onClick={() =>
-            setEvent((event) => ({ ...event, ["rules"]: [...event.rules, ""] }))
-          }
-          className="w-fit px-5 py-2 rounded-md bg-black text-white cursor-pointer"
-        >
-          Add Rule
-        </button>
-      </Section>
-      <Section customStyles="mt-8">
-        <p className="text-lg">Rounds</p>
-        {event.rounds.map((round, idx) => (
-          <RoundField
-            key={round.id}
-            round={round}
-            idx={idx}
-            updateRound={updateRound}
-          />
-        ))}
-        <button
-          onClick={() =>
-            setEvent((event) => ({
-              ...event,
-              ["rounds"]: [
-                ...event.rounds,
-                {
-                  id: "",
-                  roundNumber: event.rounds.length + 1,
-                  desc: "",
-                  startDate: "",
-                  endDate: "",
-                },
-              ],
-            }))
-          }
-          className="w-fit px-5 py-2 rounded-md bg-black text-white cursor-pointer"
-        >
-          Add Round
-        </button>
-      </Section>
-      <Section customStyles="mt-8">
-        <p className="text-lg">FAQs</p>
-        {event.FAQs.map((faq, idx) => (
-          <FAQField key={faq.id} idx={idx} faq={faq} updateFAQ={updateFAQ} />
-        ))}
-        <button
-          onClick={() =>
-            setEvent((event) => ({
-              ...event,
-              ["FAQs"]: [
-                ...event.FAQs,
-                {
-                  id: "",
-                  question: "",
-                  answer: "",
-                },
-              ],
-            }))
-          }
-          className="w-fit px-5 py-2 rounded-md bg-black text-white cursor-pointer"
-        >
-          Add FAQ
-        </button>
-      </Section>
-      <button
-        onClick={(e) => submitEvent(e)}
-        type="submit"
-        className="cursor-pointer w-full mt-3 md:mt-5 px-5 py-2 rounded-md bg-black text-white font-medium"
-      >
-        Save
-      </button>
-=======
+
           {/* PROGRESS */}
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
@@ -1258,7 +1065,6 @@ export default function EventDetails({
           </button>
         )}
       </div>
->>>>>>> Stashed changes
     </form>
   );
 }

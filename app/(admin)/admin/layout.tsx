@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../../globals.css";
 import Navbar from "./components/Navbar";
 
+import { Providers } from "@/app/Providers";
+
 export const metadata: Metadata = {
   title: "Admin Panel | Kaziranga's Super Showdown",
   description:
@@ -23,17 +25,10 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-<<<<<<< Updated upstream
-        <Navbar />
-        <main className="pt-5">{children}</main>
-=======
         <Providers>
           <Navbar />
-          <main className="pt-5">
-            {children}
-          </main>
+          <main className="pt-5">{children}</main>
         </Providers>
->>>>>>> Stashed changes
       </body>
     </html>
   );
